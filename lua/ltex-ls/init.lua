@@ -8,13 +8,21 @@ local internal_config = require 'ltex-ls.config'
 local ok, lspconfig = pcall(require, 'lspconfig')
 local setup
 if ok then
-  setup = lspconfig.ltex.setup
+  setup = function(config)
+    lspconfig[config.name or 'ltex'].setup(config)
+  end
 else
   local augroup = vim.api.nvim_create_augroup("LTeX_NVIM", {})
   setup = function(config)
     local cfg = vim.deepcopy(config)
-    cfg.name = "ltex"
-    cfg.cmd = { "ltex-ls" }
+    cfg.name = cfg.name or 'ltex'
+    if cfg.name == 'ltex_plus' then
+      cfg.cmd = cfg.cmd or { 'ltex-ls-plus' }
+    elseif cfg.name == 'ltex' then
+      cfg.cmd = cfg.cmd or { 'ltex-ls' }
+    else
+      vim.notify('[ltex-ls.nvim] server name not recognized: ' .. cfg.name, 'warning')
+    end
     vim.api.nvim_create_autocmd("Filetype", {
       pattern = config.filetypes,
       group = augroup,
@@ -56,6 +64,7 @@ local function mk_command_handler(func)
 end
 
 local default_config = {
+  name = "ltex",
   init_options = {
     customCapabilities = {
       workspaceSpecificConfiguration = true
