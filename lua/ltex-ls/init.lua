@@ -5,10 +5,16 @@ local handlers = require 'ltex-ls.handlers'
 local cache = require 'ltex-ls.cache'
 local internal_config = require 'ltex-ls.config'
 
-local ok, lspconfig = pcall(require, 'lspconfig')
 local setup
-if ok then
+if vim.fn.has('nvim-0.11') then
   setup = function(config)
+    local name = config.name or 'ltex'
+    vim.lsp.config(name, config)
+    vim.lsp.enable(name)
+  end
+elseif pcall(require, 'lspconfig') then
+  setup = function(config)
+    local lspconfig = require 'lspconfig'
     lspconfig[config.name or 'ltex'].setup(config)
   end
 else
